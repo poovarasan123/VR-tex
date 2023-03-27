@@ -1,0 +1,32 @@
+<resources>
+    <string name="app_name">WD bills</string>
+
+    <array name="items">
+        <item>==== Select Item ====</item>
+        <item>Saree</item>
+        <item>Metiriyel</item>
+        <item>Inscurt</item>
+        <item>Blowes</item>
+        <item>Lungee</item>
+        <item>Veasti</item>
+        <item>Towel</item>
+        <item>Baniyen</item>
+        <item>Jetty</item>
+        <item>Slip</item>
+        <item>Brester</item>
+        <item>Shirt</item>
+        <item>Pant</item>
+        <item>Baby Suit</item>
+        <item>Pant Shirt</item>
+        <item>Sudiddar</item>
+        <item>Midi</item>
+        <item>Frock</item>
+        <item>3/4 Pant</item>
+        <item>Full Pant</item>
+        <item>T Shirt</item>
+        <item>Nighty</item>
+        <item>Readymade</item>
+        <item>Inner</item>
+    </array>
+
+</resources>
