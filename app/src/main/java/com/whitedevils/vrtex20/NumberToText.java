@@ -1,72 +1,72 @@
 package com.whitedevils.vrtex20;
 
-import java.util.Collections;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.List;
 
 public class NumberToText {
+
+    private static final String[] ONES = {"", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"};
+    private static final String[] TEENS = {"", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"};
+    private static final String[] TENS = {"", "Ten", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"};
+    private static final String[] THOUSANDS = {"", "Thousand", "Lakh", "Crore"};
 
     public static String convertToIndianCurrency(String num) {
         BigDecimal bd = new BigDecimal(num);
         long number = bd.longValue();
-        long no = bd.longValue();
-        int decimal = (int) (bd.remainder(BigDecimal.ONE).doubleValue() * 100);
-        int digits_length = String.valueOf(no).length();
-        int i = 0;
-        ArrayList<String> str = new ArrayList<>();
-        HashMap<Integer, String> words = new HashMap<>();
-        words.put(0, "");
-        words.put(1, "One");
-        words.put(2, "Two");
-        words.put(3, "Three");
-        words.put(4, "Four");
-        words.put(5, "Five");
-        words.put(6, "Six");
-        words.put(7, "Seven");
-        words.put(8, "Eight");
-        words.put(9, "Nine");
-        words.put(10, "Ten");
-        words.put(11, "Eleven");
-        words.put(12, "Twelve");
-        words.put(13, "Thirteen");
-        words.put(14, "Fourteen");
-        words.put(15, "Fifteen");
-        words.put(16, "Sixteen");
-        words.put(17, "Seventeen");
-        words.put(18, "Eighteen");
-        words.put(19, "Nineteen");
-        words.put(20, "Twenty");
-        words.put(30, "Thirty");
-        words.put(40, "Forty");
-        words.put(50, "Fifty");
-        words.put(60, "Sixty");
-        words.put(70, "Seventy");
-        words.put(80, "Eighty");
-        words.put(90, "Ninety");
-        String digits[] = {"", "Hundred", "Thousand", "Lakh", "Crore"};
-        while (i < digits_length) {
-            int divider = (i == 2) ? 10 : 100;
-            number = no % divider;
-            no = no / divider;
-            i += divider == 10 ? 1 : 2;
-            if (number > 0) {
-                int counter = str.size();
-                String plural = (counter > 0 && number > 9) ? "s" : "";
-                String tmp = (number < 21) ? words.get(Integer.valueOf((int) number)) + " " + digits[counter] + plural : words.get(Integer.valueOf((int) Math.floor(number / 10) * 10)) + " " + words.get(Integer.valueOf((int) (number % 10))) + " " + digits[counter] + plural;
-                str.add(tmp);
-            } else {
-                str.add("");
+        int decimal = bd.remainder(BigDecimal.ONE).multiply(BigDecimal.valueOf(100)).intValue();
+
+        StringBuilder result = new StringBuilder();
+
+        if (number == 0 && decimal == 0) {
+            return "Zero Rupees Only";
+        }
+
+        List<String> parts = new ArrayList<>();
+        int partIndex = 0;
+
+        while (number > 0) {
+            int hundreds = (int) (number % 1000);
+            if (hundreds != 0) {
+                parts.add(convertLessThanThousand(hundreds) + " " + THOUSANDS[partIndex]);
             }
+            number /= 1000;
+            partIndex++;
         }
 
-        Collections.reverse(str);
-        String Rupees="";
-        for(String rupee: str){
-            Rupees+=rupee+" ";
+        // Reverse the parts
+        for (int i = parts.size() - 1; i >= 0; i--) {
+            result.append(parts.get(i)).append(" ");
         }
 
-        return Rupees + "Only";
+        if (decimal > 0) {
+            result.append(convertLessThanThousand(decimal)).append(" Paise ");
+        }
+
+        return result.append("Only").toString();
+    }
+
+    private static String convertLessThanThousand(int number) {
+        StringBuilder result = new StringBuilder();
+
+        if (number >= 100) {
+            result.append(ONES[number / 100]).append(" Hundred ");
+            number %= 100;
+        }
+
+        if (number >= 11 && number <= 19) {
+            result.append(TEENS[number - 10]);
+            return result.toString();
+        } else if (number == 10 || number >= 20) {
+            result.append(TENS[number / 10]).append(" ");
+            number %= 10;
+        }
+
+        if (number > 0) {
+            result.append(ONES[number]);
+        }
+
+        return result.toString();
     }
 }
 

@@ -6,10 +6,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.graphics.pdf.PdfDocument;
 import android.graphics.pdf.PdfRenderer;
 import android.net.Uri;
@@ -34,6 +36,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.DrawableRes;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
@@ -49,6 +52,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -75,12 +79,24 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int PICK_FILE_REQUEST_CODE = 123;
 
+    Bitmap godBitmap;
+    Bitmap back;
+    long currentTimestamp;
+
 
     @RequiresApi(api = Build.VERSION_CODES.R)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        godBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.murugan2);
+        back = BitmapFactory.decodeResource(getResources(), R.drawable.vr_back);
+        currentTimestamp = System.currentTimeMillis();
+
+//        for(int i = 1; i <= 32; i++){
+//            productList.add(new productModel("product", String.valueOf(i), String.valueOf(i)));
+//        }
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{
@@ -243,8 +259,8 @@ public class MainActivity extends AppCompatActivity {
                 ArrayList<PdfDocument.Page> myPage = new ArrayList<>();
                 ArrayList<Canvas> canvas = new ArrayList<>();
 
-                float n = (float) productList.size() / 18;
-                int nInInteger = productList.size() / 18;
+                float n = (float) productList.size() / 16;
+                int nInInteger = productList.size() / 16;
                 Log.d("main", "genbill: " + n);
                 Log.d("main", "genbill: " + nInInteger);
                 Log.d("main", "genbill: " + (nInInteger < n));
@@ -256,6 +272,9 @@ public class MainActivity extends AppCompatActivity {
                     myPage.add(pdfDocument.startPage(pageInfo.get(pages)));
                     canvas.add(myPage.get(pages).getCanvas());
 
+                    canvas.get(pages).drawBitmap(godBitmap, 600, 150, null);
+                    canvas.get(pages).drawBitmap(back, 585, 1358, null);
+
                     myPaint.setStrokeWidth(5f);
                     canvas.get(pages).drawLine(80, 80, 2450, 80, myPaint); // top of the border
                     canvas.get(pages).drawLine(80, 80, 80, 3343, myPaint); // left side of the border
@@ -266,12 +285,13 @@ public class MainActivity extends AppCompatActivity {
 
 
                     myPaint.setTypeface(Typeface.DEFAULT_BOLD);
-                    canvas.get(pages).drawText("Quotation", 1086, 332, myPaint);              // Quotion title
+                    canvas.get(pages).drawText("Quotation", 1086, 332, myPaint);              // Quotation title
                     canvas.get(pages).drawLine(80, 414, 2450, 414, myPaint);
                     myPaint.setTextSize(70f);
                     canvas.get(pages).drawText("Ph :", 1791, 160, myPaint);
                     canvas.get(pages).drawText("7200053683", 1950, 160, myPaint);
                     canvas.get(pages).drawText("7200053685", 1950, 270, myPaint);
+                    canvas.get(pages).drawText("Invoice No", 102, 490, myPaint);
                     canvas.get(pages).drawText("Invoice No", 102, 490, myPaint);
                     canvas.get(pages).drawText(invoiceno, 450, 490, myPaint);                    // Invoice no from user
                     canvas.get(pages).drawText("Invoice Date", 1623, 490, myPaint);
@@ -290,10 +310,20 @@ public class MainActivity extends AppCompatActivity {
                     //canvas.drawText("PREPARED BY", 151, 3285, myPaint);
                     //
                     if (pages == nInInteger - 1) {
-                        canvas.get(pages).drawText(NumberToText.convertToIndianCurrency(String.valueOf(tempTotal)), 151, 3152, myPaint);
+                        double subtotal = tempTotal;
+                        double gst = calculateGST(Double.parseDouble(String.valueOf(tempTotal)));
+                        double finalTotal = tempTotal + gst;
+                        DecimalFormat df = new DecimalFormat("#0.00");
+
+                        canvas.get(pages).drawText(NumberToText.convertToIndianCurrency(String.valueOf(finalTotal)), 151, 3152, myPaint);
+
+                        canvas.get(pages).drawText("SUB TOTAL", 860, 2830, myPaint);
+                        canvas.get(pages).drawText("GST ( 5% )", 900, 2920, myPaint);
                         canvas.get(pages).drawText("TOTAL", 1000, 3010, myPaint);
                         canvas.get(pages).drawText(String.valueOf(totalQty), 1337, 3010, myPaint);                                          // total quantity
-                        canvas.get(pages).drawText(String.valueOf(tempTotal), 2100, 3010, myPaint);
+                        canvas.get(pages).drawText(df.format(subtotal), 2040, 2830, myPaint);
+                        canvas.get(pages).drawText(df.format(gst), 2040, 2920, myPaint);
+                        canvas.get(pages).drawText(df.format(finalTotal), 2040, 3010, myPaint);
                         canvas.get(pages).drawText(String.valueOf(pages + 1), 1250, 3285, myPaint);
                         // total amount
                     } else {
@@ -345,7 +375,7 @@ public class MainActivity extends AppCompatActivity {
 
                     int productY = 1200;
 
-                    int printLimit = (productList.size() <= ((pages + 1) * 18)) ? productList.size() : ((pages + 1) * 18);
+                    int printLimit = (productList.size() <= ((pages + 1) * 16)) ? productList.size() : ((pages + 1) * 16);
 
                     Log.d("count", "genbill: " + count);
 
@@ -373,13 +403,17 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+    public static double calculateGST(double price) {
+        //Calculate GST amount (5% of the price)
+        return price * 0.05;
+    }
 
     private void save(PdfDocument pdfDocument) {
         File file = new File(String.valueOf(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)));
         if (!file.isDirectory()) {
             file.mkdir();
         }
-        File myFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "/vr.pdf");
+        File myFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "/vr_" + currentTimestamp +".pdf");
         try {
             pdfDocument.writeTo(new FileOutputStream(myFile));
 
@@ -394,7 +428,7 @@ public class MainActivity extends AppCompatActivity {
         PdfRenderer renderer = null;
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                File file = new File(Environment.getExternalStorageDirectory(), "/vr.pdf");
+                File file = new File(Environment.getExternalStorageDirectory(), "/vr_" + currentTimestamp +".pdf");
                 ParcelFileDescriptor descriptor = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
                 renderer = new PdfRenderer(descriptor);
                 Log.e(TAG, "printPdf: renderer: " + renderer.getPageCount() );
