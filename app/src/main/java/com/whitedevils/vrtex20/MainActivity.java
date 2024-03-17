@@ -413,7 +413,7 @@ public class MainActivity extends AppCompatActivity {
         if (!file.isDirectory()) {
             file.mkdir();
         }
-        File myFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "/vr_" + currentTimestamp +".pdf");
+        File myFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "/vr.pdf");
         try {
             pdfDocument.writeTo(new FileOutputStream(myFile));
 
@@ -428,7 +428,7 @@ public class MainActivity extends AppCompatActivity {
         PdfRenderer renderer = null;
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                File file = new File(Environment.getExternalStorageDirectory(), "/vr_" + currentTimestamp +".pdf");
+                File file = new File(Environment.getExternalStorageDirectory(), "/vr.pdf");
                 ParcelFileDescriptor descriptor = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
                 renderer = new PdfRenderer(descriptor);
                 Log.e(TAG, "printPdf: renderer: " + renderer.getPageCount() );
